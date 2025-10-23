@@ -752,29 +752,49 @@ function openSpotifyLogin() {
     `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no,location=no,status=no`
   );
 
-  // Start checking auth status
+  // Start checking auth status (as fallback)
   startAuthCheck();
 }
 
+// Listen for messages from the popup window
+window.addEventListener('message', (event) => {
+  // Check if the message is from our auth popup
+  if (event.data && event.data.type === 'spotify-auth-success') {
+    console.log('✓ Received auth success message from popup');
+    handleAuthSuccess();
+  }
+});
+
+function handleAuthSuccess() {
+  // Stop polling
+  stopAuthCheck();
+
+  // Close login window if still open
+  if (loginWindow && !loginWindow.closed) {
+    loginWindow.close();
+  }
+
+  // Update UI
+  elements.authStatus.textContent = '✓ Authorized';
+  elements.authStatus.className = 'auth-status authorized';
+  elements.authModal.style.display = 'none';
+
+  // Load the app
+  loadPlaylistDetails();
+  loadPlaylist(0);
+  loadAutoRecommendations();
+  renderRecentSearches();
+}
+
 function startAuthCheck() {
-  // Check every 2 seconds
+  // Check every 2 seconds (as fallback if postMessage doesn't work)
   authCheckInterval = setInterval(async () => {
     const isAuthorized = await checkAuthStatus();
 
     if (isAuthorized) {
       // Authorization successful!
-      stopAuthCheck();
-
-      // Close login window if still open
-      if (loginWindow && !loginWindow.closed) {
-        loginWindow.close();
-      }
-
-      // Load the app
-      loadPlaylistDetails();
-      loadPlaylist(0);
-      loadAutoRecommendations();
-      renderRecentSearches();
+      console.log('✓ Auth detected via polling');
+      handleAuthSuccess();
     }
   }, 2000);
 }

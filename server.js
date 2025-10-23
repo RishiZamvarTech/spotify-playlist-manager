@@ -271,7 +271,12 @@ app.get('/callback', async (req, res) => {
           <p>Welcome, ${userData.display_name}!</p>
           <p>You can close this window and return to the app.</p>
           <script>
-            setTimeout(() => window.close(), 2000);
+            // Notify the parent window that authorization succeeded
+            if (window.opener && !window.opener.closed) {
+              window.opener.postMessage({ type: 'spotify-auth-success' }, '*');
+            }
+            // Close after a short delay
+            setTimeout(() => window.close(), 1000);
           </script>
         </body>
       </html>
