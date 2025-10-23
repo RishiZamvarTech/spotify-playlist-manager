@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spotify Playlist Manager - WEEKLY AT 88 BENEVOLENT</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <h1>🎵 Playlist Manager</h1>
+      <div class="header-info">
+        <span class="playlist-name">WEEKLY AT 88 BENEVOLENT</span>
+        <span id="auth-status" class="auth-status">Checking...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container">
+    <!-- Left Pane: Current Playlist -->
+    <section class="pane left-pane">
+      <!-- Playlist Header -->
+      <div class="playlist-header">
+        <div class="playlist-cover" id="playlist-cover">
+          <img id="playlist-image" src="" alt="Playlist cover" style="display: none;">
+          <div class="playlist-cover-placeholder">🎵</div>
+        </div>
+        <div class="playlist-info-section">
+          <h1 id="playlist-title" class="playlist-title">Loading...</h1>
+          <p id="playlist-description" class="playlist-description">Loading...</p>
+          <div class="playlist-meta">
+            <span id="playlist-followers" class="meta-item"></span>
+            <span id="playlist-visibility" class="meta-item"></span>
+          </div>
+          <button id="edit-playlist-btn" class="btn btn-small btn-secondary">
+            ✏️ Edit Details
+          </button>
+        </div>
+      </div>
+
+      <div class="pane-header">
+        <h2>Tracks</h2>
+        <div class="toolbar">
+          <input
+            type="text"
+            id="filter-input"
+            class="filter-input"
+            placeholder="Filter tracks..."
+          >
+          <button id="refresh-btn" class="btn btn-secondary">
+            <span class="icon">🔄</span> Refresh
+          </button>
+        </div>
+      </div>
+
+      <div id="playlist-count" class="track-count"></div>
+
+      <div id="playlist-container" class="track-list">
+        <div class="loading">Loading playlist...</div>
+      </div>
+
+      <!-- Pagination -->
+      <div id="pagination" class="pagination" style="display: none;">
+        <button id="prev-page-btn" class="btn btn-secondary" disabled>← Previous</button>
+        <div class="page-selector">
+          <span id="page-info" class="page-info">Page 1</span>
+          <select id="page-select" class="page-dropdown">
+            <option value="0">Page 1</option>
+          </select>
+        </div>
+        <button id="next-page-btn" class="btn btn-secondary">Next →</button>
+      </div>
+    </section>
+
+    <!-- Right Pane: Search & Recommendations -->
+    <section class="pane right-pane">
+      <!-- Search Section -->
+      <div class="section">
+        <h2>🔍 Search Tracks</h2>
+        <input
+          type="text"
+          id="search-input"
+          class="search-input"
+          placeholder="Search for songs, artists, or albums..."
+        >
+
+        <!-- Recent Searches -->
+        <div id="recent-searches" class="recent-searches" style="display: none;">
+          <div class="recent-label">Recent Searches</div>
+          <div id="recent-list" class="recent-list"></div>
+        </div>
+
+        <div id="search-results" class="track-list">
+          <div class="empty-state">Type to search for tracks</div>
+        </div>
+      </div>
+
+      <!-- Recommendations Section -->
+      <div class="section recommendations-section">
+        <div class="section-header">
+          <h2>✨ Recommended For You</h2>
+          <button id="refresh-recs-btn" class="btn btn-small btn-secondary">
+            <span class="icon">🔄</span>
+          </button>
+        </div>
+        <p class="section-description">Based on your playlist vibes</p>
+
+        <div id="recommendations-results" class="track-list">
+          <div class="loading">Loading recommendations...</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast Notifications -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Authorization Modal -->
+  <div id="auth-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h2>Authorization Required</h2>
+      <p>Please authorize this app to access your Spotify account.</p>
+      <a href="/login" class="btn btn-primary">Authorize with Spotify</a>
+    </div>
+  </div>
+
+  <!-- Edit Playlist Modal -->
+  <div id="edit-modal" class="modal" style="display: none;">
+    <div class="modal-content edit-modal">
+      <h2>Edit Playlist Details</h2>
+
+      <div class="form-group">
+        <label for="edit-title">Playlist Name</label>
+        <input type="text" id="edit-title" class="form-input" placeholder="Playlist name">
+      </div>
+
+      <div class="form-group">
+        <label for="edit-description">Description</label>
+        <textarea id="edit-description" class="form-input" rows="3" placeholder="Playlist description"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="edit-public">
+          <span>Make playlist public</span>
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button id="cancel-edit-btn" class="btn btn-secondary">Cancel</button>
+        <button id="save-edit-btn" class="btn btn-primary">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
