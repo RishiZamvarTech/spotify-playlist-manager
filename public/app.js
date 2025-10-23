@@ -739,6 +739,7 @@ elements.searchInput.addEventListener('focus', () => {
 
 let authCheckInterval = null;
 let loginWindow = null;
+let isAppInitialized = false;
 
 function openSpotifyLogin() {
   const width = 600;
@@ -779,11 +780,15 @@ function handleAuthSuccess() {
   elements.authStatus.className = 'auth-status authorized';
   elements.authModal.style.display = 'none';
 
-  // Load the app
-  loadPlaylistDetails();
-  loadPlaylist(0);
-  loadAutoRecommendations();
-  renderRecentSearches();
+  // Only load the app if it hasn't been initialized yet
+  // This prevents reloading when already browsing
+  if (!isAppInitialized) {
+    isAppInitialized = true;
+    loadPlaylistDetails();
+    loadPlaylist(0);
+    loadAutoRecommendations();
+    renderRecentSearches();
+  }
 }
 
 function startAuthCheck() {
@@ -810,10 +815,15 @@ async function init() {
   const isAuthorized = await checkAuthStatus();
 
   if (isAuthorized) {
+    // Already authorized - load app and mark as initialized
+    isAppInitialized = true;
     loadPlaylistDetails();
     loadPlaylist(0);
     loadAutoRecommendations();
     renderRecentSearches();
+
+    // Make sure polling is stopped
+    stopAuthCheck();
   } else {
     // Not authorized - start checking and wait for user to click authorize
     startAuthCheck();
