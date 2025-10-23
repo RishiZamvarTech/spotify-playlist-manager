@@ -18,14 +18,16 @@ const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI || 'http://localhost:3000/callback';
 const PLAYLIST_ID = '4VgRTWWWJPXdV13RLAbabU'; // WEEKLY AT 88 BENEVOLENT
-const SCOPES = 'playlist-read-private playlist-modify-public playlist-modify-private';
+const SCOPES = 'playlist-read-private playlist-modify-public playlist-modify-private user-read-email';
+const ALLOWED_USER_ID = process.env.ALLOWED_USER_ID || '955wbru'; // WBRU account only
 
 // Token storage
 const TOKEN_FILE = path.join(__dirname, '.tokens.json');
 let tokenCache = {
   access_token: null,
   refresh_token: null,
-  expires_at: null
+  expires_at: null,
+  user_id: null
 };
 
 // Load tokens from file
@@ -51,6 +53,11 @@ async function saveTokens() {
 
 // Get valid access token (refresh if needed)
 async function getAccessToken() {
+  // Check if user is authorized
+  if (tokenCache.user_id && tokenCache.user_id !== ALLOWED_USER_ID) {
+    throw new Error('Access denied: This account is not authorized to use this application.');
+  }
+
   // Check if we have a valid token
   if (tokenCache.access_token && tokenCache.expires_at && Date.now() < tokenCache.expires_at - 60000) {
     return tokenCache.access_token;
@@ -186,16 +193,82 @@ app.get('/callback', async (req, res) => {
 
     const data = await response.json();
 
+    // Store tokens temporarily
     tokenCache.access_token = data.access_token;
     tokenCache.refresh_token = data.refresh_token;
     tokenCache.expires_at = Date.now() + (data.expires_in * 1000);
 
+    // Verify user is authorized
+    const userResponse = await fetch('https://api.spotify.com/v1/me', {
+      headers: {
+        'Authorization': `Bearer ${data.access_token}`
+      }
+    });
+
+    if (!userResponse.ok) {
+      throw new Error('Failed to fetch user information');
+    }
+
+    const userData = await userResponse.json();
+    const userId = userData.id;
+
+    console.log(`User ${userId} (${userData.display_name}) attempting to authorize`);
+
+    // Check if user is allowed
+    if (userId !== ALLOWED_USER_ID) {
+      console.log(`❌ Access denied for user ${userId}`);
+      // Clear tokens
+      tokenCache.access_token = null;
+      tokenCache.refresh_token = null;
+      tokenCache.expires_at = null;
+      tokenCache.user_id = null;
+
+      return res.send(`
+        <html>
+          <head>
+            <style>
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                padding: 40px;
+                text-align: center;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              }
+              .container {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                border-radius: 20px;
+                padding: 40px;
+                max-width: 500px;
+              }
+              h1 { font-size: 48px; margin: 0 0 20px 0; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>🚫 Access Denied</h1>
+              <p style="font-size: 18px;">This application is restricted to authorized WBRU accounts only.</p>
+              <p style="font-size: 14px; opacity: 0.8;">If you believe this is an error, please contact the administrator.</p>
+            </div>
+          </body>
+        </html>
+      `);
+    }
+
+    // User is authorized!
+    console.log(`✓ Access granted for user ${userId}`);
+    tokenCache.user_id = userId;
     await saveTokens();
 
     res.send(`
       <html>
         <body style="font-family: sans-serif; padding: 40px; text-align: center;">
           <h1>✓ Authorization Successful!</h1>
+          <p>Welcome, ${userData.display_name}!</p>
           <p>You can close this window and return to the app.</p>
           <script>
             setTimeout(() => window.close(), 2000);
@@ -216,6 +289,20 @@ app.get('/api/auth-status', async (req, res) => {
     res.json({ authorized: true });
   } catch (error) {
     res.json({ authorized: false, message: error.message });
+  }
+});
+
+// Get current user info (temporary endpoint to get user ID)
+app.get('/api/me', async (req, res) => {
+  try {
+    const userData = await spotifyRequest('/me');
+    res.json({
+      id: userData.id,
+      display_name: userData.display_name,
+      email: userData.email
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 

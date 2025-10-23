@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: spotify-playlist-manager
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      - key: SPOTIFY_CLIENT_ID
+        sync: false
+      - key: SPOTIFY_CLIENT_SECRET
+        sync: false
+      - key: REDIRECT_URI
+        sync: false
+      - key: ALLOWED_USER_ID
+        value: 955wbru
