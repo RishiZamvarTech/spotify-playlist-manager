@@ -66,23 +66,30 @@ In the "Environment Variables" section, add these:
 
 ## Step 5: Complete Spotify Redirect URI Setup
 
-1. Copy your Render.com URL
+1. Copy your Render.com URL: `https://spotify-playlist-manager-mshn.onrender.com`
 2. Go back to Spotify Developer Dashboard (Step 1)
-3. Add the redirect URI:
+3. Add the redirect URI (must match exactly):
    ```
-   https://spotify-playlist-manager-XXXX.onrender.com/callback
+   https://spotify-playlist-manager-mshn.onrender.com/callback
    ```
 4. Click **Save**
 
+**IMPORTANT**: The redirect URI in Spotify Dashboard MUST exactly match the `REDIRECT_URI` environment variable in Render.com.
+
 ## Step 6: First-Time Authorization
 
-1. Visit your Render.com URL
-2. Click "Authorize with Spotify" or go to `/login`
+1. Visit your Render.com URL: `https://spotify-playlist-manager-mshn.onrender.com`
+2. Click "Authorize with Spotify" or navigate to `/login`
 3. Log in with the WBRU account (media@wbru.com)
 4. Accept the permissions
-5. You should see "Authorization Successful!"
+5. You'll see "Authorization Successful!" and be automatically redirected back to the main app
+6. The app should immediately load your playlist!
 
-**Note**: The authorization token will be stored, so you only need to do this once!
+**Authorization Flow:**
+- **Popup Method**: If you click the button, it opens a popup that auto-closes after auth
+- **Direct Navigation**: If you navigate to `/login` directly, you'll be redirected to `/` after auth
+
+**Note**: The authorization token is stored in `.tokens.json` on the server, so you only need to authorize once!
 
 ## Important Notes
 
@@ -116,6 +123,17 @@ In the "Environment Variables" section, add these:
 - Make sure the redirect URI in Spotify Dashboard **exactly** matches your Render URL
 - Include `/callback` at the end
 - Use `https://` not `http://`
+- Verify the `REDIRECT_URI` environment variable in Render matches exactly:
+  ```
+  https://spotify-playlist-manager-mshn.onrender.com/callback
+  ```
+
+### Page Doesn't Redirect After Authorization
+
+- The callback page should automatically redirect you to `/` after 1.5 seconds
+- If stuck on "Authorization Successful" page, manually navigate to the main URL
+- Check browser console for JavaScript errors
+- Clear browser cache and cookies, then try again
 
 ### "Access Denied" After Login
 

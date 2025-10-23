@@ -266,17 +266,65 @@ app.get('/callback', async (req, res) => {
 
     res.send(`
       <html>
-        <body style="font-family: sans-serif; padding: 40px; text-align: center;">
-          <h1>✓ Authorization Successful!</h1>
-          <p>Welcome, ${userData.display_name}!</p>
-          <p>You can close this window and return to the app.</p>
-          <script>
-            // Notify the parent window that authorization succeeded
-            if (window.opener && !window.opener.closed) {
-              window.opener.postMessage({ type: 'spotify-auth-success' }, '*');
+        <head>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              padding: 40px;
+              text-align: center;
+              background: linear-gradient(135deg, #1DB954 0%, #1ed760 100%);
+              color: white;
+              min-height: 100vh;
+              display: flex;
+              align-items: center;
+              justify-content: center;
             }
-            // Close after a short delay
-            setTimeout(() => window.close(), 1000);
+            .container {
+              background: rgba(255, 255, 255, 0.1);
+              backdrop-filter: blur(10px);
+              border-radius: 20px;
+              padding: 40px;
+              max-width: 500px;
+            }
+            h1 { font-size: 48px; margin: 0 0 20px 0; }
+            .spinner {
+              border: 4px solid rgba(255, 255, 255, 0.3);
+              border-top: 4px solid white;
+              border-radius: 50%;
+              width: 40px;
+              height: 40px;
+              animation: spin 1s linear infinite;
+              margin: 20px auto;
+            }
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>✓ Authorization Successful!</h1>
+            <p style="font-size: 18px;">Welcome, ${userData.display_name}!</p>
+            <div class="spinner"></div>
+            <p id="status" style="font-size: 14px; opacity: 0.9;">Redirecting to app...</p>
+          </div>
+          <script>
+            // Check if this is a popup window
+            const isPopup = window.opener && !window.opener.closed;
+
+            if (isPopup) {
+              // Popup flow: Notify parent window and close
+              document.getElementById('status').textContent = 'You can close this window now.';
+              window.opener.postMessage({ type: 'spotify-auth-success' }, '*');
+              setTimeout(() => window.close(), 1000);
+            } else {
+              // Direct navigation flow: Redirect to main app
+              document.getElementById('status').textContent = 'Redirecting...';
+              setTimeout(() => {
+                window.location.href = '/';
+              }, 1500);
+            }
           </script>
         </body>
       </html>
