@@ -737,6 +737,55 @@ elements.searchInput.addEventListener('focus', () => {
 
 // ============== INITIALIZATION ==============
 
+let authCheckInterval = null;
+let loginWindow = null;
+
+function openSpotifyLogin() {
+  const width = 600;
+  const height = 700;
+  const left = (window.screen.width - width) / 2;
+  const top = (window.screen.height - height) / 2;
+
+  loginWindow = window.open(
+    '/login',
+    'spotify-auth',
+    `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no,location=no,status=no`
+  );
+
+  // Start checking auth status
+  startAuthCheck();
+}
+
+function startAuthCheck() {
+  // Check every 2 seconds
+  authCheckInterval = setInterval(async () => {
+    const isAuthorized = await checkAuthStatus();
+
+    if (isAuthorized) {
+      // Authorization successful!
+      stopAuthCheck();
+
+      // Close login window if still open
+      if (loginWindow && !loginWindow.closed) {
+        loginWindow.close();
+      }
+
+      // Load the app
+      loadPlaylistDetails();
+      loadPlaylist(0);
+      loadAutoRecommendations();
+      renderRecentSearches();
+    }
+  }, 2000);
+}
+
+function stopAuthCheck() {
+  if (authCheckInterval) {
+    clearInterval(authCheckInterval);
+    authCheckInterval = null;
+  }
+}
+
 async function init() {
   const isAuthorized = await checkAuthStatus();
 
@@ -745,6 +794,9 @@ async function init() {
     loadPlaylist(0);
     loadAutoRecommendations();
     renderRecentSearches();
+  } else {
+    // Not authorized - start checking and wait for user to click authorize
+    startAuthCheck();
   }
 }
 
